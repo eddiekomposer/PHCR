@@ -21,21 +21,25 @@ def wheel(pos):
         r = 0
         g = int(pos * 3)
         b = int(255 - pos * 3)
+
     r = int(r * bright)
     g = int(g * bright)
     b = int(b * bright)
     return(r, g, b)
 
-ain = analogio.AnalogIn(board.A2)
+a1 = analogy.AnalogIn(board.A1)
+a2 = analogio.AnalogIn(board.A2)
 px = neopixel.NeoPixel(board.NEOPIXEL, 10, brightness = 0.6)
+
 color = (0, 0, 0)
 px.fill(color)
-i = float(ain.value)
+i = float(a2.value)
 bright = 0
 
 while True:
-    bright = 0.92 * bright + 0.08 * (1 - ain.value / 64535)
-    i = int(0.92 * i + 0.08 * ain.value / 64535 * 128)
+    bright = 0.92 * bright + 0.08 * (1 - a1.value / 64535)
+    i = int(0.92 * i + 0.08 * a2.value / 64535 * 128)
     color = wheel(i)
     px.fill(color)
+
     time.sleep(0.01)
