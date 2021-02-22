@@ -44,8 +44,7 @@ while True:
             if button_b.value:
                 i += 1
         i %= 7
-        pixels.fill(color[i]).
-
+        pixels.fill(color[i])
         bright = 0
     else:
         breathe = (int(color[i][0] * bright / 1000), int(color[i][1] * bright / 1000), int(color[i][2] * bright / 1000))
