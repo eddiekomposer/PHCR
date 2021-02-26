@@ -1,15 +1,17 @@
-import digitalio
 import time
 import neopixel
 import board
 
+from adafruit_ble import BLERadio
+from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
+from adafruit_ble.services.nordic import UARTService
+from adafruit_bluefruit_connect.packet import Packet
+from adafruit_bluefruit_connect.button_packet import ButtonPacket
+
+ble = BLERadio()
+uart = UARTService()
+advertisement = ProvideServicesAdvertisement(uart)
 px = neopixel.NeoPixel(board.NEOPIXEL, 10, brightness = 0.4, auto_write = 0)
-left = digitalio.DigitalInOut(board.BUTTON_A)
-left.direction = digitalio.Direction.INPUT
-left.pull = digitalio.Pull.DOWN
-right = digitalio.DigitalInOut(board.BUTTON_B)
-right.direction = digitalio.Direction.INPUT
-right.pull = digitalio.Pull.DOWN
 
 def wheel(pos):
     if pos < 0 or pos > 255:
@@ -47,9 +49,15 @@ def lighten(pixel, index):
     return (r, g, b)
 
 def coloring():
+    global packet
+
     for j in range(255):
-        if left.value or right.value:
-            return
+        if uart.in_waiting:
+            packet = Packet.from_stream(uart)
+        if packet.button == ButtonPacket.LEFT:
+            leftwards()
+        elif packet.button == ButtonPacket.RIGHT:
+            rightwards()
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             px[i] = wheel(rc_index & 255)
@@ -57,44 +65,54 @@ def coloring():
         time.sleep(0.1)
 
 def leftwards():
+    global packet
+
     k = 5
     for j in range(255):
-        if not left.value:
+        if uart.in_waiting:
+            packet = Packet.from_stream(uart)
+        if not packet.pressed:
             return
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             px[i] = wheel(rc_index & 255)
 
         px[k] = lighten(px[k], 3)
-        px[(k-1)%10] = lighten(px[(k-1)%10], 2)
-        px[(k-2)%10] = lighten(px[(k-2)%10], 1)
+        px[(k-1) % 10] = lighten(px[(k-1) % 10], 2)
+        px[(k-2) % 10] = lighten(px[(k-2) % 10], 1)
         k = (k+1) % 10
 
         px.show()
         time.sleep(0.1)
 
 def rightwards():
+    global packet
+
     k = 5
     for j in range(255):
-        if not right.value:
+        if uart.in_waiting:
+            packet = Packet.from_stream(uart)
+        if not packet.pressed:
             return
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             px[i] = wheel(rc_index & 255)
 
         px[k] = lighten(px[k], 3)
-        px[(k+1)%10] = lighten(px[(k+1)%10], 2)
-        px[(k+2)%10] = lighten(px[(k+2)%10], 1)
+        px[(k+1) % 10] = lighten(px[(k+1) % 10], 2)
+        px[(k+2) % 10] = lighten(px[(k+2) % 10], 1)
         k = (k-1) % 10
 
         px.show()
         time.sleep(0.1)
 
 while 1:
-    if left.value:
-        leftwards()
-    elif right.value:
-        rightwards()
-    else:
-        coloring()
-    time.sleep(0.01)
+    ble.start_advertising(advertisement)
+    while not ble.connected:
+        pass
+    while ble.connected:
+        if uart.in_waiting:
+            packet = Packet.from_stream(uart)
+            if isinstance(packet, ButtonPacket):
+                if packet.pressed:
+                    coloring()

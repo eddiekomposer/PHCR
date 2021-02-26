@@ -6,7 +6,7 @@ def wheel(pos):
     if pos < 0 or pos > 255:
         return (0, 0, 0)
     if pos < 85:
-        return (int((255 - pos * 3)* 0.5), int(pos * 3 * 0.5), 0)
+        return (int((255 - pos * 3) * 0.5), int(pos * 3 * 0.5), 0)
     if pos < 170:
         pos -= 85
         return (0, int((255 - pos * 3) * 0.5), int(pos * 3 * 0.5))
@@ -46,10 +46,10 @@ def coloring():
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             cp.pixels[i] = wheel(rc_index & 255)
-
-        cp.pixels[k] = lighten(cp.pixels[k], 3)
-        #cp.pixels[(k-1) % 10] = lighten(cp.pixels[(k-1) % 10], 1)
-        #cp.pixels[(k+1) % 10] = lighten(cp.pixels[(k+1) % 10], 1)
+        if (x > 0.5) or (y > 0.5):
+            cp.pixels[k] = lighten(cp.pixels[k], 3)
+            #cp.pixels[(k-1) % 10] = lighten(cp.pixels[(k-1) % 10], 1)
+            #cp.pixels[(k+1) % 10] = lighten(cp.pixels[(k+1) % 10], 1)
         time.sleep(0.01)
 
 while 1:
