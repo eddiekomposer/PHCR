@@ -2,6 +2,8 @@ import time
 import math
 from adafruit_circuitplayground import cp
 
+cp.pixels.auto_write = 0
+
 def wheel(pos):
     if pos < 0 or pos > 255:
         return (0, 0, 0)
@@ -48,9 +50,10 @@ def coloring():
             cp.pixels[i] = wheel(rc_index & 255)
         if (x > 0.5) or (y > 0.5):
             cp.pixels[k] = lighten(cp.pixels[k], 3)
-            #cp.pixels[(k-1) % 10] = lighten(cp.pixels[(k-1) % 10], 1)
-            #cp.pixels[(k+1) % 10] = lighten(cp.pixels[(k+1) % 10], 1)
-        time.sleep(0.01)
+            cp.pixels[(k-1) % 10] = lighten(cp.pixels[(k-1) % 10], 1)
+            cp.pixels[(k+1) % 10] = lighten(cp.pixels[(k+1) % 10], 1)
+        cp.pixels.show()
+        time.sleep(0.05)
 
 while 1:
     coloring()
