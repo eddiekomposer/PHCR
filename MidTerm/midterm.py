@@ -22,20 +22,18 @@ clear = (0, 0, 0)
 j = 0
 
 def wheel(pos):
-    k = sonar.distance
-    if k > 50:
-        k = 50
-    k = k / 100
+    global dis
+
 
     if pos < 0 or pos > 255:
         return (0, 0, 0)
     if pos < 85:
-        return (255 - pos * 3, int(pos * 3 * k), 0)
+        return (255 - pos * 3, int(pos * 3 * dis), 0)
     if pos < 170:
         pos -= 85
-        return (int(0 + (0.5 - k) * 255), int((255 - pos * 3) * k), int(pos * 3 * k))
+        return (int(0 + (0.5 - dis) * 255), int((255 - pos * 3) * dis), int(pos * 3 * dis))
     pos -= 170
-    return (pos * 3, 0, int((255 - pos * 3) * k))
+    return (pos * 3, 0, int((255 - pos * 3) * dis))
 
 
 
@@ -82,7 +80,7 @@ def leftwards():
         k = (k+1) % 10
 
         px.show()
-        time.sleep(0.03)
+        time.sleep(0.1)
 
 def rightwards():
     global packet
@@ -103,7 +101,7 @@ def rightwards():
         k = (k-1) % 10
 
         px.show()
-        time.sleep(0.03)
+        time.sleep(0.1)
 
 def bootup():
     global px, color, clear
@@ -192,6 +190,10 @@ while 1:
             if not mode:
                 continue
 
+            dis = sonar.distance
+            if dis > 50:
+                dis = 50
+            dis = dis / 100
             for i in range(10):
                 rc_index = (i * 256 // 10) + j * 5
                 px[i] = wheel(rc_index & 255)
@@ -200,3 +202,4 @@ while 1:
 
             px.show()
             j = (j + 1) % 255
+            time.sleep(0.1)
