@@ -1,4 +1,8 @@
+# PHCR midterm Eddie Ko Copyright All rights reserved
+# import and initialization
+
 import time
+import neopixel
 import board
 import math
 import adafruit_hcsr04
@@ -14,13 +18,14 @@ sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.A1, echo_pin=board.A2)
 ble = BLERadio()
 uart = UARTService()
 advertisement = ProvideServicesAdvertisement(uart)
-px = cp.pixels
-px.auto_write = 0
+px = neopixel.NeoPixel(board.A5, 10, brightness=0.5, auto_write=False)
 mode = 0
 color = (255, 255, 255)
 clear = (0, 0, 0)
 j = 0
 
+# transfer an order number to a certain RGB value
+# Degree of red is affected by distance
 def wheel(pos):
     global dis
 
@@ -36,7 +41,7 @@ def wheel(pos):
     return (pos * 3, 0, int((255 - pos * 3) * dis))
 
 
-
+# make current color brighter
 def lighten(pixel, index):
     r = pixel[0]
     g = pixel[1]
@@ -61,8 +66,9 @@ def lighten(pixel, index):
         b = 255
     return (r, g, b)
 
+# left turn signal
 def leftwards():
-    global packet
+    global packet, dis
 
     k = 5
     for j in range(255):
@@ -70,6 +76,10 @@ def leftwards():
             packet = Packet.from_stream(uart)
         if not packet.pressed:
             return
+        dis = sonar.distance
+        if dis > 50:
+            dis = 50
+        dis = dis / 100
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             px[i] = wheel(rc_index & 255)
@@ -82,8 +92,9 @@ def leftwards():
         px.show()
         time.sleep(0.1)
 
+# right turn signal
 def rightwards():
-    global packet
+    global packet, dis
 
     k = 5
     for j in range(255):
@@ -91,6 +102,10 @@ def rightwards():
             packet = Packet.from_stream(uart)
         if not packet.pressed:
             return
+        dis = sonar.distance
+        if dis > 50:
+            dis = 50
+        dis = dis / 100
         for i in range(10):
             rc_index = (i * 256 // 10) + j * 5
             px[i] = wheel(rc_index & 255)
@@ -103,6 +118,7 @@ def rightwards():
         px.show()
         time.sleep(0.1)
 
+# bootup animation
 def bootup():
     global px, color, clear
 
@@ -128,6 +144,7 @@ def bootup():
         px.fill((color[0] * i / 100, color[1] * i / 100, color[2] * i / 100))
         px.show()
 
+# shutdown animation
 def shutdown():
     global px, color, clear
 
@@ -153,6 +170,7 @@ def shutdown():
         px.fill((color[0] * i / 100, color[1] * i / 100, color[2] * i / 100))
         px.show()
 
+# detect acceleration direction and make corresponding pixel brighter
 def direction():
     global px
 
@@ -164,6 +182,7 @@ def direction():
         px[k] = lighten(cp.pixels[k], 3)
         px[(k+1) % 10] = lighten(cp.pixels[(k+1) % 10], 3)
 
+# main
 while 1:
     ble.start_advertising(advertisement)
     while not ble.connected:
