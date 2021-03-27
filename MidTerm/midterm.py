@@ -25,7 +25,7 @@ clear = (0, 0, 0)
 j = 0
 
 # transfer an order number to a certain RGB value
-# Degree of red is affected by distance
+# Degree of red is affected by distance (decrease G & B value in a ratio)
 def wheel(pos):
     global dis
 
@@ -41,7 +41,7 @@ def wheel(pos):
     return (pos * 3, 0, int((255 - pos * 3) * dis))
 
 
-# make current color brighter
+# make current color brighter by increase all R G B value in a ratio
 def lighten(pixel, index):
     r = pixel[0]
     g = pixel[1]
@@ -66,7 +66,7 @@ def lighten(pixel, index):
         b = 255
     return (r, g, b)
 
-# left turn signal
+# left turn signal (lighten pixels in a sequence)
 def leftwards():
     global packet, dis
 
@@ -92,7 +92,7 @@ def leftwards():
         px.show()
         time.sleep(0.1)
 
-# right turn signal
+# right turn signal (lighten sequence in a sequence)
 def rightwards():
     global packet, dis
 
