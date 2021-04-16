@@ -2,14 +2,12 @@
 # Scale Selection MIDI controller   #######################
 
 import board
-import rotaryio
 import time
 import analogio
 import touchio
 import neopixel
 import adafruit_midi
 import usb_midi
-from digitalio import DigitalInOut, Direction, Pull
 #import busio
 from adafruit_midi.note_on          import NoteOn
 
@@ -18,11 +16,9 @@ px = neopixel.NeoPixel(board.NEOPIXEL, 10, auto_write = 0)
 pxonkey = neopixel.NeoPixel(board.A5, 30, auto_write = 0)
 
 read_1 = analogio.AnalogIn(board.A1)
-read_2 = analogio.AnalogIn(board.A6)
-knob = rotaryio.IncrementalEncoder(board.A2, board.A4)
-read_scale = DigitalInOut(board.A3)
-read_scale.direction = Direction.INPUT
-read_scale.pull = Pull.DOWN
+read_2 = analogio.AnalogIn(board.A2)
+read_octave = analogio.AnalogIn(board.A3)
+read_scale = touchio.TouchIn(board.A6)
 midi = adafruit_midi.MIDI(midi_out = usb_midi.ports[1])
 
 octave_index = 4
@@ -73,7 +69,7 @@ while 1:
     pxonkey.fill(0)
 
     # determine octave  ###################################
-    octave_index = knob.position % 8
+    octave_index = round(read_octave.value / 65535 * 7)
     px[(13 - octave_index) % 10] = (100, 180, 255)
     px.show()
     #######################################################
@@ -106,7 +102,7 @@ while 1:
         r = 0
     keys += [r >> bit & 1 for bit in range(4)][::-1]
     #######################################################
-    print(keys)
+
 
     # send MIDI signal  ###################################
     for i in range(7):
